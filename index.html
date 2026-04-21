@@ -255,7 +255,9 @@
         <div class="container">
             <div class="section-head"><span class="badge">الفيديوهات</span><h2 class="section-title">الفيديوهات التعليمية</h2><p class="section-desc">شروحات مرئية لطريقة استخدام النظام بكفاءة</p></div>
             <div id="siteVideos" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:30px;">
-                <p id="noVideosMsg" style="text-align:center; grid-column: 1 / -1; color: var(--text-light); font-size: 16px;">لم يتم إضافة فيديوهات تعليمية حتى الآن، سيتم إضافتها قريباً...</p>
+                <div style="position: relative; padding-bottom: 56.25%; height: 0px; overflow: hidden; border-radius: 16px; box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 30px;">
+                    <video src="مشكلة السيكوال الحمرا.mp4" controls style="position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; background-color: rgb(0, 0, 0);"></video>
+                </div>
             </div>
         </div>
     </section>
@@ -341,12 +343,7 @@
                     var noVidMsg = document.getElementById('noVideosMsg');
                     if (noVidMsg) noVidMsg.style.display = 'none';
                     siteData.videos.forEach(function(url) {
-                        var embedUrl = url;
-                        if (url.includes('youtube.com/watch?v=')) {
-                            embedUrl = url.replace('watch?v=', 'embed/').split('&')[0];
-                        } else if (url.includes('youtu.be/')) {
-                            embedUrl = url.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0];
-                        }
+                        var isDirectVideo = url.match(/\.(mp4|webm|ogg)$/i);
                         
                         var wrapper = document.createElement('div');
                         wrapper.style.position = 'relative';
@@ -356,17 +353,44 @@
                         wrapper.style.borderRadius = '16px';
                         wrapper.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
                         
-                        var iframe = document.createElement('iframe');
-                        iframe.src = embedUrl;
-                        iframe.style.position = 'absolute';
-                        iframe.style.top = '0';
-                        iframe.style.left = '0';
-                        iframe.style.width = '100%';
-                        iframe.style.height = '100%';
-                        iframe.style.border = 'none';
-                        iframe.allowFullscreen = true;
+                        if (isDirectVideo) {
+                            var videoEl = document.createElement('video');
+                            videoEl.src = url;
+                            videoEl.controls = true;
+                            videoEl.autoplay = false;
+                            videoEl.style.position = 'absolute';
+                            videoEl.style.top = '0';
+                            videoEl.style.left = '0';
+                            videoEl.style.width = '100%';
+                            videoEl.style.height = '100%';
+                            videoEl.style.backgroundColor = '#000';
+                            wrapper.appendChild(videoEl);
+                        } else {
+                            var embedUrl = url;
+                            if (url.includes('youtube.com/watch?v=')) {
+                                embedUrl = url.replace('watch?v=', 'embed/').split('&')[0] + '?autoplay=0&rel=0';
+                            } else if (url.includes('youtu.be/')) {
+                                embedUrl = url.replace('youtu.be/', 'www.youtube.com/embed/').split('?')[0] + '?autoplay=0&rel=0';
+                            } else if (url.includes('youtube.com/shorts/')) {
+                                embedUrl = url.replace('youtube.com/shorts/', 'www.youtube.com/embed/').split('?')[0] + '?autoplay=0&rel=0';
+                            } else if (embedUrl.includes('?')) {
+                                embedUrl += '&autoplay=0';
+                            } else {
+                                embedUrl += '?autoplay=0';
+                            }
+                            
+                            var iframe = document.createElement('iframe');
+                            iframe.src = embedUrl;
+                            iframe.style.position = 'absolute';
+                            iframe.style.top = '0';
+                            iframe.style.left = '0';
+                            iframe.style.width = '100%';
+                            iframe.style.height = '100%';
+                            iframe.style.border = 'none';
+                            iframe.allowFullscreen = true;
+                            wrapper.appendChild(iframe);
+                        }
                         
-                        wrapper.appendChild(iframe);
                         videosContainer.appendChild(wrapper);
                     });
                 }
