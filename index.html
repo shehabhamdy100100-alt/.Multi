@@ -296,7 +296,7 @@
         
         const supabaseUrl = 'https://allglccmckuqfbjcqivg.supabase.co';
         const supabaseKey = 'sb_publishable_EFfX1IkWGCVLkrBJcmh9Cw_c-ejYHM_';
-        const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey);
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         window.siteData = {};
         
