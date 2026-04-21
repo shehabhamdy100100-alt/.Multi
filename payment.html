@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إتمام الدفع - Multi System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{font-family:'Cairo',sans-serif;margin:0;padding:0;box-sizing:border-box}
+        body{background:#f8fafc;color:#1e293b;line-height:1.6}
+        .container{max-width:1200px;margin:0 auto;padding:0 20px}
+        :root{--primary:#059669;--secondary:#0d9488;--text-dark:#1e293b;--text-light:#64748b;--bg-light:#f8fafc;--border:#e2e8f0}
+        
+        .btn-primary{background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:14px 28px;border-radius:12px;font-weight:700;font-size:16px;border:none;cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba(5,150,105,.3);width:100%;display:flex;justify-content:center;align-items:center;gap:10px}
+        .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(5,150,105,.4)}
+        
+        /* Header Simplified */
+        .header-simple{background:#fff;padding:20px 0;box-shadow:0 2px 10px rgba(0,0,0,.05);margin-bottom:40px}
+        .header-inner{display:flex;align-items:center;justify-content:space-between}
+        .logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+        .logo-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--primary),var(--secondary));border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;box-shadow:0 4px 15px rgba(5,150,105,.3)}
+        .logo-text{display:flex;flex-direction:column}
+        .logo-name{font-weight:700;font-size:18px;color:var(--text-dark)}
+        .logo-subtitle{font-size:11px;color:var(--primary)}
+        .back-link{color:var(--text-light);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:8px;transition:color .3s}
+        .back-link:hover{color:var(--primary)}
+
+        /* Payment Section */
+        .payment-wrapper{display:grid;grid-template-columns:1.5fr 1fr;gap:40px;margin-bottom:80px;align-items:start}
+        
+        /* Form Card */
+        .payment-card{background:#fff;border-radius:24px;padding:40px;box-shadow:0 10px 40px rgba(0,0,0,.04)}
+        .payment-title{font-size:24px;font-weight:800;color:var(--text-dark);margin-bottom:8px}
+        .payment-subtitle{font-size:15px;color:var(--text-light);margin-bottom:32px}
+        
+        .methods-grid{display:flex;gap:16px;margin-bottom:32px}
+        .method-btn{flex:1;border:2px solid var(--border);border-radius:12px;padding:16px;background:#fff;cursor:pointer;transition:all .3s;display:flex;flex-direction:column;align-items:center;gap:8px}
+        .method-btn.active{border-color:var(--primary);background:#f0fdf4}
+        .method-icon{font-size:24px}
+        .method-name{font-size:14px;font-weight:600;color:var(--text-dark)}
+
+        .form-row{display:flex;gap:20px;margin-bottom:20px}
+        .form-group{flex:1}
+        .form-group label{display:block;font-size:14px;font-weight:600;color:var(--text-dark);margin-bottom:8px}
+        .form-group input{width:100%;padding:14px 16px;border:2px solid var(--border);border-radius:12px;font-size:15px;transition:all .3s;outline:none;background:#f8fafc}
+        .form-group input:focus{border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(5,150,105,.1)}
+        .input-icon-wrapper{position:relative}
+        .input-icon-wrapper input{padding-right:48px}
+        .input-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:20px}
+
+        /* Order Summary */
+        .summary-card{background:linear-gradient(135deg,#059669 0%,#0d9488 100%);border-radius:24px;padding:40px;color:#fff;position:sticky;top:40px;box-shadow:0 20px 50px rgba(5,150,105,.2)}
+        .summary-title{font-size:20px;font-weight:700;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:16px}
+        .summary-item{display:flex;justify-content:space-between;margin-bottom:16px;font-size:15px;color:#d1fae5}
+        .summary-item strong{color:#fff;font-size:16px}
+        .summary-total{display:flex;justify-content:space-between;margin-top:24px;padding-top:24px;border-top:1px solid rgba(255,255,255,.2);font-size:20px;font-weight:800}
+        .secure-badge{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,.1);font-size:13px;color:#a7f3d0}
+        .secure-badge svg{width:16px;height:16px}
+
+        @media(max-width:992px){
+            .payment-wrapper{grid-template-columns:1fr}
+            .summary-card{order:-1;position:static}
+            .form-row{flex-direction:column;gap:0}
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-simple">
+        <div class="container">
+            <div class="header-inner">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">MS</div>
+                    <div class="logo-text">
+                        <span class="logo-name">Multi System</span>
+                        <span class="logo-subtitle">للحلول البرمجية</span>
+                    </div>
+                </a>
+                <a href="index.html" class="back-link">
+                    العودة للرئيسية
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="payment-wrapper">
+            
+            <div class="payment-card">
+                <h1 class="payment-title">تفاصيل الدفع</h1>
+                <p class="payment-subtitle">يرجى إدخال تفاصيل الدفع الخاصة بك لإتمام الاشتراك</p>
+
+                <div class="methods-grid">
+                    <div class="method-btn active">
+                        <div class="method-icon">💳</div>
+                        <span class="method-name">بطاقة ائتمان</span>
+                    </div>
+                    <div class="method-btn">
+                        <div class="method-icon">🍏</div>
+                        <span class="method-name">Apple Pay</span>
+                    </div>
+                    <div class="method-btn">
+                        <div class="method-icon">🅿️</div>
+                        <span class="method-name">PayPal</span>
+                    </div>
+                </div>
+
+                <form id="paymentForm">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>الاسم على البطاقة</label>
+                        <input type="text" placeholder="الاسم كما هو مطبوع على البطاقة" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>رقم البطاقة</label>
+                        <div class="input-icon-wrapper">
+                            <input type="text" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                            <div class="input-icon">💳</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>تاريخ الانتهاء</label>
+                            <input type="text" placeholder="MM/YY" maxlength="5" required>
+                        </div>
+                        <div class="form-group">
+                            <label>رمز الأمان (CVV)</label>
+                            <input type="text" placeholder="123" maxlength="4" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        دفع الآن
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+                    </button>
+                </form>
+            </div>
+
+            <div class="summary-card">
+                <h3 class="summary-title">ملخص الطلب</h3>
+                
+                <div class="summary-item">
+                    <span>الباقة المختارة</span>
+                    <strong id="planName">الباقة الاحترافية</strong>
+                </div>
+                
+                <div class="summary-item">
+                    <span>مدة الاشتراك</span>
+                    <strong>شهري</strong>
+                </div>
+                
+                <div class="summary-item">
+                    <span>السعر الأساسي</span>
+                    <strong id="planPrice">399 ريال</strong>
+                </div>
+                
+                <div class="summary-item">
+                    <span>ضريبة القيمة المضافة (15%)</span>
+                    <strong id="planTax">59.85 ريال</strong>
+                </div>
+
+                <div class="summary-total">
+                    <span>الإجمالي</span>
+                    <span id="planTotal">458.85 ريال</span>
+                </div>
+
+                <div class="secure-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    مدفوعات آمنة ومشفرة 100%
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Set Plan data from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const plan = urlParams.get('plan');
+        
+        let planDetails = {
+            basic: { name: 'الباقة الأساسية', price: 199 },
+            pro: { name: 'الباقة الاحترافية', price: 399 },
+            enterprise: { name: 'الباقة المؤسسية', price: 799 }
+        };
+
+        if(plan && planDetails[plan]) {
+            let p = planDetails[plan];
+            let tax = p.price * 0.15;
+            let total = p.price + tax;
+
+            document.getElementById('planName').innerText = p.name;
+            document.getElementById('planPrice').innerText = p.price + ' ريال';
+            document.getElementById('planTax').innerText = tax.toFixed(2) + ' ريال';
+            document.getElementById('planTotal').innerText = total.toFixed(2) + ' ريال';
+        }
+
+        // Methods selection
+        document.querySelectorAll('.method-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Form submission
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = this.querySelector('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'جاري المعالجة...';
+            btn.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                btn.innerHTML = 'تم الدفع بنجاح! ✔️';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 2000);
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
