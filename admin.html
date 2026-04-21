@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم الإدارة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Cairo', sans-serif; background: #f8fafc; margin: 0; padding: 0; }
         .sidebar { width: 250px; background: #1e293b; color: white; position: fixed; top: 0; bottom: 0; right: 0; padding: 20px; }
@@ -51,8 +52,13 @@
                 <input type="text" id="emailInput">
             </div>
             <div class="form-group">
-                <label>شعار الموقع (اللوجو - رابط صورة)</label>
-                <input type="text" id="logoUrlInput" placeholder="أدخل رابط صورة الشعار هنا (مثال: https://example.com/logo.png)">
+                <label>شعار الموقع (اللوجو)</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="file" id="logoFileInput" accept="image/*" style="flex:1;">
+                    <button class="btn-save" onclick="uploadLogo()">رفع الصورة</button>
+                </div>
+                <input type="hidden" id="logoUrlInput">
+                <img id="logoPreview" class="img-preview" style="max-height:80px; display:none;">
             </div>
             <button class="btn-save" onclick="saveContact()">حفظ التعديلات</button>
         </div>
@@ -72,8 +78,12 @@
                 <textarea id="heroDescInput" rows="3"></textarea>
             </div>
             <div class="form-group">
-                <label>صورة البانر (رابط)</label>
-                <input type="text" id="heroBgInput" placeholder="https://example.com/image.jpg" oninput="previewHeroBg()">
+                <label>صورة البانر</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="file" id="heroBgFileInput" accept="image/*" style="flex:1;">
+                    <button class="btn-save" onclick="uploadHeroBg()">رفع الصورة</button>
+                </div>
+                <input type="hidden" id="heroBgInput">
                 <img id="heroBgPreview" class="img-preview">
             </div>
             <button class="btn-save" onclick="saveBanner()">حفظ البانر</button>
@@ -82,10 +92,10 @@
         <div class="card" id="images">
             <h3>معرض الصور الإضافية</h3>
             <div class="form-group">
-                <label>إضافة صورة (رابط)</label>
+                <label>رفع صورة للمعرض</label>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="newImageInput" placeholder="أدخل رابط الصورة...">
-                    <button class="btn-save" onclick="addImage()">إضافة</button>
+                    <input type="file" id="newImageFileInput" accept="image/*" style="flex:1;">
+                    <button class="btn-save" onclick="uploadGalleryImage()" id="btnUploadGallery">رفع الصورة</button>
                 </div>
             </div>
             <div id="galleryContainer"></div>
@@ -94,10 +104,17 @@
         <div class="card" id="videos">
             <h3>الفيديوهات التعليمية</h3>
             <div class="form-group">
-                <label>إضافة فيديو (رابط يوتيوب أو مباشر)</label>
+                <label>رفع فيديو من الجهاز (أقصى حجم 50 ميجا)</label>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="newVideoInput" placeholder="أدخل رابط الفيديو (مثال: يوتيوب)...">
-                    <button class="btn-save" onclick="addVideo()">إضافة</button>
+                    <input type="file" id="newVideoFileInput" accept="video/*" style="flex:1;">
+                    <button class="btn-save" onclick="uploadVideoFile()" id="btnUploadVideo">رفع الفيديو</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>أو إضافة رابط فيديو (مثال: يوتيوب)</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="newVideoInput" placeholder="أدخل رابط الفيديو...">
+                    <button class="btn-save" onclick="addVideo()">إضافة الرابط</button>
                 </div>
             </div>
             <div id="videosContainer" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
@@ -114,141 +131,187 @@
             window.location.href = 'login.html';
         }
 
-        function getSiteData() {
-            return JSON.parse(localStorage.getItem('siteData')) || { 
-                phone: '+966 50 123 4567',
-                email: 'info@multisystem.sa',
-                logoUrl: '',
-                heroTitle: 'نظام محاسبي',
-                heroAccent: 'متكامل لأعمالك',
-                heroDesc: 'إدارة مالية احترافية، فواتير إلكترونية، تقارير ذكية، ومتابعة المخزون - كل ما تحتاجه في منصة واحدة سهلة الاستخدام.',
-                heroBg: '',
-                gallery: [],
-                videos: [],
-                floatingImages: []
-            };
-        }
+        // Supabase configuration
+        const supabaseUrl = 'https://allglccmckuqfbjcqivg.supabase.co';
+        const supabaseKey = 'sb_publishable_EFfX1IkWGCVLkrBJcmh9Cw_c-ejYHM_';
+        const supabase = supabaseClient.createClient(supabaseUrl, supabaseKey);
 
-        function saveSiteData(data) {
-            localStorage.setItem('siteData', JSON.stringify(data));
-            alert('تم الحفظ بنجاح');
-        }
-
-        window.onload = function() {
-            var data = getSiteData();
-            document.getElementById('phoneInput').value = data.phone;
-            document.getElementById('emailInput').value = data.email;
-            document.getElementById('logoUrlInput').value = data.logoUrl || '';
-            document.getElementById('heroTitleInput').value = data.heroTitle;
-            document.getElementById('heroAccentInput').value = data.heroAccent;
-            document.getElementById('heroDescInput').value = data.heroDesc;
-            document.getElementById('heroBgInput').value = data.heroBg || '';
-            previewHeroBg();
-            renderGallery(data.gallery);
-            renderVideos(data.videos);
+        window.onload = async function() {
+            await loadData();
         };
 
-        function saveContact() {
-            var data = getSiteData();
-            data.phone = document.getElementById('phoneInput').value;
-            data.email = document.getElementById('emailInput').value;
-            data.logoUrl = document.getElementById('logoUrlInput').value;
-            saveSiteData(data);
-        }
-
-        function saveBanner() {
-            var data = getSiteData();
-            data.heroTitle = document.getElementById('heroTitleInput').value;
-            data.heroAccent = document.getElementById('heroAccentInput').value;
-            data.heroDesc = document.getElementById('heroDescInput').value;
-            data.heroBg = document.getElementById('heroBgInput').value;
-            saveSiteData(data);
-        }
-
-        function previewHeroBg() {
-            var url = document.getElementById('heroBgInput').value;
-            var preview = document.getElementById('heroBgPreview');
-            if (url) {
-                preview.src = url;
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
+        async function loadData() {
+            // Load Settings
+            const { data: settings } = await supabase.from('site_settings').select('*');
+            if (settings) {
+                settings.forEach(s => {
+                    if (s.key === 'contact') {
+                        document.getElementById('phoneInput').value = s.value.phone || '';
+                        document.getElementById('emailInput').value = s.value.email || '';
+                    } else if (s.key === 'brand') {
+                        document.getElementById('logoUrlInput').value = s.value.logoUrl || '';
+                        if (s.value.logoUrl) {
+                            document.getElementById('logoPreview').src = s.value.logoUrl;
+                            document.getElementById('logoPreview').style.display = 'block';
+                        }
+                    } else if (s.key === 'hero') {
+                        document.getElementById('heroTitleInput').value = s.value.title || '';
+                        document.getElementById('heroAccentInput').value = s.value.accent || '';
+                        document.getElementById('heroDescInput').value = s.value.desc || '';
+                        document.getElementById('heroBgInput').value = s.value.bgUrl || '';
+                        if (s.value.bgUrl) {
+                            document.getElementById('heroBgPreview').src = s.value.bgUrl;
+                            document.getElementById('heroBgPreview').style.display = 'block';
+                        }
+                    }
+                });
             }
+
+            // Load Gallery
+            const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+            renderGallery(gallery || []);
+
+            // Load Videos
+            const { data: videos } = await supabase.from('videos').select('*').order('created_at', { ascending: false });
+            renderVideos(videos || []);
         }
 
-        function addImage() {
-            var input = document.getElementById('newImageInput');
-            var url = input.value;
-            if (url) {
-                var data = getSiteData();
-                if (!data.gallery) data.gallery = [];
-                data.gallery.push(url);
-                saveSiteData(data);
-                input.value = '';
-                renderGallery(data.gallery);
+        async function saveContact() {
+            const phone = document.getElementById('phoneInput').value;
+            const email = document.getElementById('emailInput').value;
+            await supabase.from('site_settings').upsert({ key: 'contact', value: { phone, email } });
+            
+            const logoUrl = document.getElementById('logoUrlInput').value;
+            await supabase.from('site_settings').upsert({ key: 'brand', value: { logoUrl } });
+            
+            alert('تم حفظ البيانات بنجاح!');
+        }
+
+        async function saveBanner() {
+            const title = document.getElementById('heroTitleInput').value;
+            const accent = document.getElementById('heroAccentInput').value;
+            const desc = document.getElementById('heroDescInput').value;
+            const bgUrl = document.getElementById('heroBgInput').value;
+            await supabase.from('site_settings').upsert({ key: 'hero', value: { title, accent, desc, bgUrl } });
+            
+            alert('تم حفظ إعدادات البانر!');
+        }
+
+        async function uploadFileToSupabase(file) {
+            const fileName = Date.now() + '_' + Math.random().toString(36).substring(7) + '_' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '');
+            const { data, error } = await supabase.storage.from('media').upload(fileName, file);
+            if (error) {
+                alert('حدث خطأ أثناء الرفع: ' + error.message);
+                throw error;
             }
+            const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(fileName);
+            return publicUrlData.publicUrl;
         }
 
-        function removeImage(index) {
+        async function uploadLogo() {
+            const fileInput = document.getElementById('logoFileInput');
+            if (!fileInput.files[0]) return alert('الرجاء اختيار صورة أولاً');
+            const url = await uploadFileToSupabase(fileInput.files[0]);
+            document.getElementById('logoUrlInput').value = url;
+            document.getElementById('logoPreview').src = url;
+            document.getElementById('logoPreview').style.display = 'block';
+            saveContact();
+        }
+
+        async function uploadHeroBg() {
+            const fileInput = document.getElementById('heroBgFileInput');
+            if (!fileInput.files[0]) return alert('الرجاء اختيار صورة أولاً');
+            const url = await uploadFileToSupabase(fileInput.files[0]);
+            document.getElementById('heroBgInput').value = url;
+            document.getElementById('heroBgPreview').src = url;
+            document.getElementById('heroBgPreview').style.display = 'block';
+            saveBanner();
+        }
+
+        async function uploadGalleryImage() {
+            const fileInput = document.getElementById('newImageFileInput');
+            const btn = document.getElementById('btnUploadGallery');
+            if (!fileInput.files[0]) return alert('الرجاء اختيار صورة أولاً');
+            
+            btn.innerText = 'جاري الرفع...';
+            try {
+                const url = await uploadFileToSupabase(fileInput.files[0]);
+                await supabase.from('gallery').insert([{ image_url: url }]);
+                fileInput.value = '';
+                await loadData();
+            } catch(e) {}
+            btn.innerText = 'رفع الصورة';
+        }
+
+        async function removeImage(id) {
             if(confirm('هل أنت متأكد من حذف هذه الصورة؟')) {
-                var data = getSiteData();
-                data.gallery.splice(index, 1);
-                saveSiteData(data);
-                renderGallery(data.gallery);
+                await supabase.from('gallery').delete().eq('id', id);
+                await loadData();
             }
         }
 
         function renderGallery(gallery) {
             var container = document.getElementById('galleryContainer');
             container.innerHTML = '';
-            if (gallery && gallery.length > 0) {
-                gallery.forEach(function(url, index) {
-                    var div = document.createElement('div');
-                    div.className = 'gallery-item';
-                    div.innerHTML = '<img src="' + url + '"><button onclick="removeImage(' + index + ')">X</button>';
-                    container.appendChild(div);
-                });
-            }
+            gallery.forEach(function(item) {
+                var div = document.createElement('div');
+                div.className = 'gallery-item';
+                div.innerHTML = '<img src="' + item.image_url + '"><button onclick="removeImage(\'' + item.id + '\')">X</button>';
+                container.appendChild(div);
+            });
         }
 
-        function addVideo() {
+        async function uploadVideoFile() {
+            const fileInput = document.getElementById('newVideoFileInput');
+            const btn = document.getElementById('btnUploadVideo');
+            if (!fileInput.files[0]) return alert('الرجاء اختيار فيديو أولاً');
+            
+            // Check file size (50MB max)
+            if (fileInput.files[0].size > 50 * 1024 * 1024) {
+                return alert('حجم الفيديو كبير جداً! الحد الأقصى للرفع هو 50 ميجابايت لضمان سرعة الموقع. الرجاء ضغط الفيديو أو استخدام رابط يوتيوب.');
+            }
+            
+            btn.innerText = 'جاري الرفع... الرجاء الانتظار';
+            try {
+                const url = await uploadFileToSupabase(fileInput.files[0]);
+                await supabase.from('videos').insert([{ video_url: url }]);
+                fileInput.value = '';
+                await loadData();
+            } catch(e) {}
+            btn.innerText = 'رفع الفيديو';
+        }
+
+        async function addVideo() {
             var input = document.getElementById('newVideoInput');
             var url = input.value;
             if (url) {
-                var data = getSiteData();
-                if (!data.videos) data.videos = [];
-                data.videos.push(url);
-                saveSiteData(data);
+                await supabase.from('videos').insert([{ video_url: url }]);
                 input.value = '';
-                renderVideos(data.videos);
+                await loadData();
             }
         }
 
-        function removeVideo(index) {
+        async function removeVideo(id) {
             if(confirm('هل أنت متأكد من حذف هذا الفيديو؟')) {
-                var data = getSiteData();
-                data.videos.splice(index, 1);
-                saveSiteData(data);
-                renderVideos(data.videos);
+                await supabase.from('videos').delete().eq('id', id);
+                await loadData();
             }
         }
 
         function renderVideos(videos) {
             var container = document.getElementById('videosContainer');
             container.innerHTML = '';
-            if (videos && videos.length > 0) {
-                videos.forEach(function(url, index) {
-                    var div = document.createElement('div');
-                    div.style.position = 'relative';
-                    div.style.width = '200px';
-                    div.style.padding = '10px';
-                    div.style.background = '#f1f5f9';
-                    div.style.borderRadius = '8px';
-                    div.style.wordBreak = 'break-all';
-                    div.innerHTML = '<a href="' + url + '" target="_blank" style="font-size:14px;">' + url.substring(0, 30) + '...</a><button onclick="removeVideo(' + index + ')" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;">X</button>';
-                    container.appendChild(div);
-                });
-            }
+            videos.forEach(function(item) {
+                var div = document.createElement('div');
+                div.style.position = 'relative';
+                div.style.width = '200px';
+                div.style.padding = '10px';
+                div.style.background = '#f1f5f9';
+                div.style.borderRadius = '8px';
+                div.style.wordBreak = 'break-all';
+                div.innerHTML = '<a href="' + item.video_url + '" target="_blank" style="font-size:14px;">' + item.video_url.substring(0, 30) + '...</a><button onclick="removeVideo(\'' + item.id + '\')" style="position:absolute; top:-5px; right:-5px; background:red; color:white; border:none; border-radius:50%; width:20px; height:20px; cursor:pointer;">X</button>';
+                container.appendChild(div);
+            });
         }
     </script>
 </body>
