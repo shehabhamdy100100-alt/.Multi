@@ -48,6 +48,11 @@
         .mobile-menu a{display:block;padding:12px 0;color:var(--text-dark);text-decoration:none;font-weight:500;border-bottom:1px solid #e2e8f0}
         .mobile-menu a:hover{color:var(--primary)}
 
+        /* Ticker Marquee */
+        .site-ticker { position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(90deg, #0f172a, #1e293b); color: #fff; z-index: 1001; overflow: hidden; display: none; border-bottom: 1px solid rgba(255,255,255,0.1); direction: ltr; }
+        .ticker-content { display: inline-block; white-space: nowrap; padding: 10px 0; animation: marquee 25s linear infinite; font-size: 15px; font-weight: 600; color: #a7f3d0; }
+        @keyframes marquee { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
+
         .hero{min-height:100vh;background:linear-gradient(135deg,#059669 0%,#0d9488 50%,#0891b2 100%);display:flex;align-items:center;padding-top:80px;position:relative;overflow:hidden}
         .hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 4v4h2V6h4V4H8V0H6v4zm0 30v4h2v-4h4v-2H8v-4H6v4H0v2h4zm36-8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM6 20v-4H4v4H0v2h4v4h2v-4h4v-2H6zm36 0v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM18 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM36 20v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM18 20v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");opacity:.5}
         .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:1}
@@ -160,6 +165,10 @@
     </style>
 </head>
 <body>
+    <div class="site-ticker" id="siteTickerBox">
+        <div class="ticker-content"><span id="tickerText"></span> &nbsp;&nbsp;✨&nbsp;&nbsp; <span id="tickerText2"></span></div>
+    </div>
+    
     <header id="header">
         <div class="container">
             <div class="header-inner">
@@ -223,13 +232,8 @@
     <section id="features" class="features">
         <div class="container">
             <div class="section-head"><span class="badge">مميزات النظام</span><h2 class="section-title">كل ما تحتاجه لإدارة أعمالك</h2><p class="section-desc">نظام متكامل يجمع كل أدوات الإدارة المالية والمحاسبية في مكان واحد</p></div>
-            <div class="features-grid">
-                <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg></div><h3>إدارة الحسابات</h3><p>دفتر الأستاذ العام، الحسابات المساعدة، والتقارير المالية الشاملة</p></div>
-                <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div><h3>الفواتير الإلكترونية</h3><p>إنشاء وإرسال فواتير احترافية مع QR Code وتتبع حالة الدفع</p></div>
-                <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div><h3>إدارة المخزون</h3><p>تتبع المنتجات، تنبيهات نقص المخزون، وإدارة المستودعات</p></div>
-                <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div><h3>إدارة العملاء</h3><p>قاعدة بيانات العملاء، سجل التعاملات، وتقارير التحصيل</p></div>
-                <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div><h3>التقارير الذكية</h3><p>تقارير تفصيلية، رسوم بيانية، وتحليلات لاتخاذ قرارات أفضل</p></div>
-                <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg></div><h3>أمان عالي</h3><p>تشفير البيانات، نسخ احتياطي تلقائي، وصلاحيات المستخدمين</p></div>
+            <div class="features-grid" id="siteFeaturesList">
+                <!-- Features dynamically loaded here -->
             </div>
         </div>
     </section>
@@ -237,10 +241,8 @@
     <section id="pricing" class="pricing">
         <div class="container">
             <div class="section-head"><span class="badge">باقات الاشتراك</span><h2 class="section-title">اختر الباقة المناسبة لك</h2><p class="section-desc">باقات مرنة تناسب جميع أحجام الأعمال مع ضمان استرداد خلال 14 يوم</p></div>
-            <div class="pricing-grid">
-                <div class="price-card"><div class="price-head"><h3>الباقة الأساسية</h3><span>للمشاريع الصغيرة</span></div><div class="price-amount"><strong>199</strong><span>ريال / شهر</span></div><ul class="price-features"><li><span class="check">✓</span> مستخدم واحد</li><li><span class="check">✓</span> 500 فاتورة شهرياً</li><li><span class="check">✓</span> إدارة المخزون</li><li><span class="check">✓</span> تقارير أساسية</li><li><span class="check">✓</span> دعم فني بالبريد</li></ul><button class="btn-outline" onclick="window.location.href='payment.html?plan=basic'">اشترك الآن</button></div>
-                <div class="price-card popular"><span class="popular-tag">الأكثر طلباً</span><div class="price-head"><h3>الباقة الاحترافية</h3><span>للمؤسسات المتوسطة</span></div><div class="price-amount"><strong class="green">399</strong><span>ريال / شهر</span></div><ul class="price-features"><li><span class="check">✓</span> 5 مستخدمين</li><li><span class="check">✓</span> فواتير غير محدودة</li><li><span class="check">✓</span> إدارة الفروع</li><li><span class="check">✓</span> تقارير متقدمة</li><li><span class="check">✓</span> دعم فني 24/7</li></ul><button class="btn-primary w-full" onclick="window.location.href='payment.html?plan=pro'">اشترك الآن</button></div>
-                <div class="price-card"><div class="price-head"><h3>الباقة المؤسسية</h3><span>للشركات الكبيرة</span></div><div class="price-amount"><strong>799</strong><span>ريال / شهر</span></div><ul class="price-features"><li><span class="check">✓</span> مستخدمين غير محدود</li><li><span class="check">✓</span> فواتير غير محدودة</li><li><span class="check">✓</span> API مخصص</li><li><span class="check">✓</span> تقارير مخصصة</li><li><span class="check">✓</span> مدير حساب مخصص</li></ul><button class="btn-outline" onclick="window.location.href='payment.html?plan=enterprise'">اشترك الآن</button></div>
+            <div class="pricing-grid" id="sitePricingList">
+                <!-- Pricing dynamically loaded here -->
             </div>
         </div>
     </section>
@@ -266,10 +268,8 @@
     <section id="testimonials" class="testimonials">
         <div class="container">
             <div class="section-head"><span class="badge">آراء العملاء</span><h2 class="section-title">ماذا يقول عملاؤنا</h2><p class="section-desc">آراء حقيقية من عملاء يستخدمون نظامنا يومياً</p></div>
-            <div class="testimonials-grid">
-                <div class="testimonial-card"><div class="stars">★★★★★</div><p class="testimonial-text">نظام رائع ساعدنا في تنظيم حساباتنا وتوفير وقت كبير. الدعم الفني ممتاز والتحديثات مستمرة.</p><div class="author"><div class="author-avatar">أ</div><div class="author-info"><h4>أحمد محمد</h4><span>مدير شركة تجارية</span></div></div></div>
-                <div class="testimonial-card"><div class="stars">★★★★★</div><p class="testimonial-text">أفضل نظام محاسبي استخدمته. سهولة في التعامل وتقارير شاملة تساعد في اتخاذ القرارات.</p><div class="author"><div class="author-avatar">س</div><div class="author-info"><h4>سارة أحمد</h4><span>محاسبة قانونية</span></div></div></div>
-                <div class="testimonial-card"><div class="stars">★★★★★</div><p class="testimonial-text">انتقلنا من نظام يدوي إلى Multi System ووفرنا 70% من الوقت. أنصح به بشدة!</p><div class="author"><div class="author-avatar">م</div><div class="author-info"><h4>محمد علي</h4><span>صاحب مصنع</span></div></div></div>
+            <div class="testimonials-grid" id="siteTestimonialsList">
+                <!-- Testimonials dynamically loaded here -->
             </div>
         </div>
     </section>
@@ -308,6 +308,7 @@
                         if (s.key === 'contact') {
                             siteData.phone = s.value.phone;
                             siteData.email = s.value.email;
+                            siteData.ticker = s.value.ticker;
                         } else if (s.key === 'brand') {
                             siteData.logoUrl = s.value.logoUrl;
                         } else if (s.key === 'hero') {
@@ -315,6 +316,12 @@
                             siteData.heroAccent = s.value.accent;
                             siteData.heroDesc = s.value.desc;
                             siteData.heroBg = s.value.bgUrl;
+                        } else if (s.key === 'features') {
+                            siteData.features = s.value;
+                        } else if (s.key === 'pricing') {
+                            siteData.pricing = s.value;
+                        } else if (s.key === 'testimonials') {
+                            siteData.testimonials = s.value;
                         }
                     });
                 }
@@ -343,6 +350,21 @@
                 }
                 if (siteData.phone && document.getElementById('contactPhoneEl')) document.getElementById('contactPhoneEl').innerText = siteData.phone;
                 if (siteData.email && document.getElementById('contactEmailEl')) document.getElementById('contactEmailEl').innerText = siteData.email;
+                
+                if (siteData.ticker) {
+                    var tickerBox = document.getElementById('siteTickerBox');
+                    if (tickerBox) {
+                        tickerBox.style.display = 'block';
+                        document.getElementById('tickerText').innerText = siteData.ticker;
+                        document.getElementById('tickerText2').innerText = siteData.ticker;
+                        document.getElementById('header').style.top = '40px';
+                        document.getElementById('home').style.paddingTop = '120px';
+                    }
+                } else {
+                    if (document.getElementById('siteTickerBox')) document.getElementById('siteTickerBox').style.display = 'none';
+                    document.getElementById('header').style.top = '0';
+                }
+
                 if (siteData.heroTitle && document.getElementById('heroTitleEl')) document.getElementById('heroTitleEl').innerText = siteData.heroTitle;
                 if (siteData.heroAccent && document.getElementById('heroAccentEl')) document.getElementById('heroAccentEl').innerText = siteData.heroAccent;
                 if (siteData.heroDesc && document.getElementById('heroDescEl')) document.getElementById('heroDescEl').innerText = siteData.heroDesc;
@@ -439,6 +461,43 @@
                     siteData.floatingImages.forEach(function(imgData) {
                         renderFloatingImage(imgData);
                     });
+                }
+                
+                // Render Dynamic Lists
+                if (siteData.features && siteData.features.length > 0) {
+                    var feats = document.getElementById('siteFeaturesList');
+                    if (feats) {
+                        feats.innerHTML = '';
+                        siteData.features.forEach(f => {
+                            feats.innerHTML += '<div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div><h3>'+f.title+'</h3><p>'+f.desc+'</p></div>';
+                        });
+                    }
+                }
+                
+                if (siteData.pricing && siteData.pricing.length > 0) {
+                    var pricingContainer = document.getElementById('sitePricingList');
+                    if (pricingContainer) {
+                        pricingContainer.innerHTML = '';
+                        siteData.pricing.forEach(p => {
+                            var featuresList = (p.features || []).map(feat => '<li><span class="check">✓</span> '+feat+'</li>').join('');
+                            var popTag = p.isPopular ? '<span class="popular-tag">الأكثر طلباً</span>' : '';
+                            var popClass = p.isPopular ? 'popular' : '';
+                            var btnClass = p.isPopular ? 'btn-primary w-full' : 'btn-outline';
+                            
+                            pricingContainer.innerHTML += '<div class="price-card '+popClass+'">'+popTag+'<div class="price-head"><h3>'+p.name+'</h3></div><div class="price-amount"><strong class="'+(p.isPopular?'green':'')+'">'+p.price+'</strong></div><ul class="price-features">'+featuresList+'</ul><button class="'+btnClass+'" onclick="window.location.href=\'payment.html\'">اشترك الآن</button></div>';
+                        });
+                    }
+                }
+                
+                if (siteData.testimonials && siteData.testimonials.length > 0) {
+                    var testContainer = document.getElementById('siteTestimonialsList');
+                    if (testContainer) {
+                        testContainer.innerHTML = '';
+                        siteData.testimonials.forEach(t => {
+                            var initial = t.name ? t.name.charAt(0) : 'U';
+                            testContainer.innerHTML += '<div class="testimonial-card"><div class="stars">★★★★★</div><p class="testimonial-text">"'+t.text+'"</p><div class="author"><div class="author-avatar">'+initial+'</div><div class="author-info"><h4>'+t.name+'</h4><span>'+t.role+'</span></div></div></div>';
+                        });
+                    }
                 }
             }
         }
