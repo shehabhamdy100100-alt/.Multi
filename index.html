@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi System - للحلول البرمجية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.21.1/dist/pocketbase.umd.js"></script>
     <style>
         *{font-family:'Cairo',sans-serif;margin:0;padding:0;box-sizing:border-box}
         html{scroll-behavior:smooth}
@@ -295,17 +295,15 @@
         document.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var t=document.querySelector(this.getAttribute('href'));if(t){t.scrollIntoView({behavior:'smooth',block:'start'})}})});
         var cForm = document.getElementById('contactForm');
         if(cForm) cForm.addEventListener('submit',function(e){e.preventDefault();alert('شكراً لتواصلك معنا! سنرد عليك في أقرب وقت.');this.reset()});
-        
-        const supabaseUrl = 'https://allglccmckuqfbjcqivg.supabase.co';
-        const supabaseKey = 'sb_publishable_EFfX1IkWGCVLkrBJcmh9Cw_c-ejYHM_';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const pb = new PocketBase('http://127.0.0.1:8090'); // غير الرابط هنا بعد ما ترفع PocketBase
 
         window.siteData = {};
         
         async function loadSiteData() {
             try {
-                const { data: settings } = await supabase.from('site_settings').select('*');
-                if (settings) {
+                const settings = await pb.collection('site_settings').getFullList();
+                
+                if (settings && settings.length > 0) {
                     settings.forEach(s => {
                         if (s.key === 'contact') {
                             siteData.phone = s.value.phone;
@@ -320,17 +318,19 @@
                         }
                     });
                 }
-                const { data: gallery } = await supabase.from('gallery').select('*').order('created_at', { ascending: false });
+                const gallery = await pb.collection('gallery').getFullList({ sort: '-created' });
                 siteData.gallery = gallery ? gallery.map(g => g.image_url) : [];
                 
-                const { data: videos } = await supabase.from('videos').select('*').order('created_at', { ascending: false });
+                const videos = await pb.collection('videos').getFullList({ sort: '-created' });
                 siteData.videos = videos ? videos.map(v => v.video_url) : [];
 
                 let localData = JSON.parse(localStorage.getItem('siteData')) || {};
                 siteData.floatingImages = localData.floatingImages || [];
 
                 applySiteData(siteData);
-            } catch(e) { console.error('Error fetching from Supabase', e); }
+            } catch(e) { 
+                console.error('Error fetching from PocketBase', e); 
+            }
         }
 
         loadSiteData();

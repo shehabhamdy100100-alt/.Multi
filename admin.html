@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة تحكم الإدارة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.21.1/dist/pocketbase.umd.js"></script>
     <style>
         body { font-family: 'Cairo', sans-serif; background: #f8fafc; margin: 0; padding: 0; }
         .sidebar { width: 250px; background: #1e293b; color: white; position: fixed; top: 0; bottom: 0; right: 0; padding: 20px; }
@@ -64,13 +64,9 @@
                 <input type="text" id="emailInput">
             </div>
             <div class="form-group">
-                <label>شعار الموقع (اللوجو)</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="file" id="logoFileInput" accept="image/*" style="flex:1;">
-                    <button class="btn-upload" onclick="uploadLogo()" id="btnUploadLogo">رفع الصورة</button>
-                </div>
-                <input type="hidden" id="logoUrlInput">
-                <img id="logoPreview" class="img-preview" style="max-height:80px;">
+                <label>رابط شعار الموقع (اللوجو)</label>
+                <input type="text" id="logoUrlInput" placeholder="أدخل رابط الشعار..." onchange="document.getElementById('logoPreview').src=this.value; document.getElementById('logoPreview').style.display='block';">
+                <img id="logoPreview" class="img-preview" style="max-height:80px; margin-top:10px;">
             </div>
         </div>
 
@@ -89,23 +85,19 @@
                 <textarea id="heroDescInput" rows="3"></textarea>
             </div>
             <div class="form-group">
-                <label>صورة البانر</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="file" id="heroBgFileInput" accept="image/*" style="flex:1;">
-                    <button class="btn-upload" onclick="uploadHeroBg()" id="btnUploadHero">رفع الصورة</button>
-                </div>
-                <input type="hidden" id="heroBgInput">
-                <img id="heroBgPreview" class="img-preview">
+                <label>رابط صورة البانر</label>
+                <input type="text" id="heroBgInput" placeholder="أدخل رابط الصورة..." onchange="document.getElementById('heroBgPreview').src=this.value; document.getElementById('heroBgPreview').style.display='block';">
+                <img id="heroBgPreview" class="img-preview" style="margin-top:10px;">
             </div>
         </div>
 
         <div class="card" id="images">
             <h3>معرض الصور الإضافية</h3>
             <div class="form-group">
-                <label>رفع صورة للمعرض</label>
+                <label>إضافة رابط صورة للمعرض</label>
                 <div style="display:flex; gap:10px;">
-                    <input type="file" id="newImageFileInput" accept="image/*" style="flex:1;">
-                    <button class="btn-upload" onclick="uploadGalleryImage()" id="btnUploadGallery">رفع الصورة</button>
+                    <input type="text" id="newImageInput" placeholder="أدخل رابط الصورة..." style="flex:1;">
+                    <button class="btn-upload" onclick="addGalleryLink()" id="btnAddGallery">إضافة الرابط</button>
                 </div>
             </div>
             <div id="galleryContainer"></div>
@@ -114,14 +106,7 @@
         <div class="card" id="videos">
             <h3>الفيديوهات التعليمية</h3>
             <div class="form-group">
-                <label>رفع فيديو من الجهاز (أقصى حجم 50 ميجا)</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="file" id="newVideoFileInput" accept="video/*" style="flex:1;">
-                    <button class="btn-upload" onclick="uploadVideoFile()" id="btnUploadVideo">رفع الفيديو</button>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>أو إضافة رابط فيديو (مثال: يوتيوب)</label>
+                <label>إضافة رابط فيديو (مثال: يوتيوب أو مسار الملف)</label>
                 <div style="display:flex; gap:10px;">
                     <input type="text" id="newVideoInput" placeholder="أدخل رابط الفيديو...">
                     <button class="btn-upload" onclick="addVideoLink()">إضافة الرابط</button>
@@ -150,10 +135,7 @@
             setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // Supabase configuration - FIXING THE BUG HERE
-        const supabaseUrl = 'https://allglccmckuqfbjcqivg.supabase.co';
-        const supabaseKey = 'sb_publishable_EFfX1IkWGCVLkrBJcmh9Cw_c-ejYHM_';
-        const sb = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const pb = new PocketBase('http://127.0.0.1:8090'); // غير الرابط هنا بعد ما ترفع PocketBase
 
         window.onload = async function() {
             await loadData();
@@ -161,9 +143,7 @@
 
         async function loadData() {
             try {
-                // Load Settings
-                const { data: settings, error: err1 } = await sb.from('site_settings').select('*');
-                if (err1) throw err1;
+                const settings = await pb.collection('site_settings').getFullList();
                 if (settings) {
                     settings.forEach(s => {
                         if (s.key === 'contact') {
@@ -188,48 +168,51 @@
                     });
                 }
 
-                // Load Gallery
-                const { data: gallery, error: err2 } = await sb.from('gallery').select('*').order('created_at', { ascending: false });
-                if (err2) throw err2;
+                const gallery = await pb.collection('gallery').getFullList({ sort: '-created' });
                 renderGallery(gallery || []);
 
-                // Load Videos
-                const { data: videos, error: err3 } = await sb.from('videos').select('*').order('created_at', { ascending: false });
-                if (err3) throw err3;
+                const videos = await pb.collection('videos').getFullList({ sort: '-created' });
                 renderVideos(videos || []);
             } catch (err) {
                 console.error("Error loading data:", err);
-                alert("حدث خطأ أثناء تحميل البيانات: " + err.message + "\n\nتأكد أنك قمت بتشغيل كود SQL في Supabase!");
+                alert("برجاء التأكد من تشغيل PocketBase وإعداد الـ Collections بشكل صحيح.");
             }
         }
 
-        // Unified Save Function
+        async function saveSetting(key, value) {
+            try {
+                const records = await pb.collection('site_settings').getFullList({ filter: `key="${key}"` });
+                if (records.length > 0) {
+                    await pb.collection('site_settings').update(records[0].id, { value });
+                } else {
+                    await pb.collection('site_settings').create({ key, value });
+                }
+            } catch (e) {
+                console.error(e);
+                throw e;
+            }
+        }
+
         async function saveAllSettings() {
             const btn = document.getElementById('mainSaveBtn');
             btn.innerText = 'جاري الحفظ... ⏳';
             btn.style.opacity = '0.7';
 
             try {
-                // 1. Contact Info
                 const phone = document.getElementById('phoneInput').value;
                 const email = document.getElementById('emailInput').value;
-                const {error: e1} = await sb.from('site_settings').upsert({ key: 'contact', value: { phone, email } });
-                if(e1) throw e1;
+                await saveSetting('contact', { phone, email });
                 
-                // 2. Brand (Logo)
                 const logoUrl = document.getElementById('logoUrlInput').value;
-                const {error: e2} = await sb.from('site_settings').upsert({ key: 'brand', value: { logoUrl } });
-                if(e2) throw e2;
+                await saveSetting('brand', { logoUrl });
 
-                // 3. Banner
                 const title = document.getElementById('heroTitleInput').value;
                 const accent = document.getElementById('heroAccentInput').value;
                 const desc = document.getElementById('heroDescInput').value;
                 const bgUrl = document.getElementById('heroBgInput').value;
-                const {error: e3} = await sb.from('site_settings').upsert({ key: 'hero', value: { title, accent, desc, bgUrl } });
-                if(e3) throw e3;
+                await saveSetting('hero', { title, accent, desc, bgUrl });
 
-                showToast("تم حفظ التعديلات بنجاح! ✅");
+                showToast("تم حفظ التعديلات في قاعدة البيانات! ✅");
             } catch (err) {
                 console.error(err);
                 alert("حدث خطأ أثناء الحفظ! " + err.message);
@@ -239,71 +222,22 @@
             btn.style.opacity = '1';
         }
 
-        async function uploadFileToSupabase(file) {
-            const fileName = Date.now() + '_' + Math.random().toString(36).substring(7) + '_' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '');
-            const { data, error } = await sb.storage.from('media').upload(fileName, file);
-            if (error) {
-                alert('حدث خطأ أثناء الرفع: ' + error.message);
-                throw error;
+        async function addGalleryLink() {
+            var input = document.getElementById('newImageInput');
+            var url = input.value;
+            if (url) {
+                try {
+                    await pb.collection('gallery').create({ image_url: url });
+                    input.value = '';
+                    await loadData();
+                    showToast("تم إضافة الصورة.");
+                } catch(e) { alert(e.message); }
             }
-            const { data: publicUrlData } = sb.storage.from('media').getPublicUrl(fileName);
-            return publicUrlData.publicUrl;
-        }
-
-        async function uploadLogo() {
-            const fileInput = document.getElementById('logoFileInput');
-            const btn = document.getElementById('btnUploadLogo');
-            if (!fileInput.files[0]) return alert('الرجاء اختيار صورة أولاً');
-            
-            btn.innerText = 'جاري الرفع...';
-            try {
-                const url = await uploadFileToSupabase(fileInput.files[0]);
-                document.getElementById('logoUrlInput').value = url;
-                document.getElementById('logoPreview').src = url;
-                document.getElementById('logoPreview').style.display = 'block';
-                showToast("تم رفع الشعار. اضغط 'حفظ التعديلات' لتثبيته.");
-            } catch(e) {}
-            btn.innerText = 'رفع الصورة';
-        }
-
-        async function uploadHeroBg() {
-            const fileInput = document.getElementById('heroBgFileInput');
-            const btn = document.getElementById('btnUploadHero');
-            if (!fileInput.files[0]) return alert('الرجاء اختيار صورة أولاً');
-            
-            btn.innerText = 'جاري الرفع...';
-            try {
-                const url = await uploadFileToSupabase(fileInput.files[0]);
-                document.getElementById('heroBgInput').value = url;
-                document.getElementById('heroBgPreview').src = url;
-                document.getElementById('heroBgPreview').style.display = 'block';
-                showToast("تم رفع البانر. اضغط 'حفظ التعديلات' لتثبيته.");
-            } catch(e) {}
-            btn.innerText = 'رفع الصورة';
-        }
-
-        async function uploadGalleryImage() {
-            const fileInput = document.getElementById('newImageFileInput');
-            const btn = document.getElementById('btnUploadGallery');
-            if (!fileInput.files[0]) return alert('الرجاء اختيار صورة أولاً');
-            
-            btn.innerText = 'جاري الرفع...';
-            try {
-                const url = await uploadFileToSupabase(fileInput.files[0]);
-                const {error} = await sb.from('gallery').insert([{ image_url: url }]);
-                if (error) throw error;
-                fileInput.value = '';
-                await loadData();
-                showToast("تم إضافة الصورة للمعرض مباشرة.");
-            } catch(e) {
-                alert(e.message);
-            }
-            btn.innerText = 'رفع الصورة';
         }
 
         async function removeImage(id) {
             if(confirm('هل أنت متأكد من حذف هذه الصورة؟')) {
-                await sb.from('gallery').delete().eq('id', id);
+                await pb.collection('gallery').delete(id);
                 await loadData();
             }
         }
@@ -319,46 +253,22 @@
             });
         }
 
-        async function uploadVideoFile() {
-            const fileInput = document.getElementById('newVideoFileInput');
-            const btn = document.getElementById('btnUploadVideo');
-            if (!fileInput.files[0]) return alert('الرجاء اختيار فيديو أولاً');
-            
-            if (fileInput.files[0].size > 50 * 1024 * 1024) {
-                return alert('حجم الفيديو كبير جداً! الحد الأقصى للرفع هو 50 ميجابايت لضمان سرعة الموقع. الرجاء ضغط الفيديو أو استخدام رابط يوتيوب.');
-            }
-            
-            btn.innerText = 'جاري الرفع... الرجاء الانتظار';
-            try {
-                const url = await uploadFileToSupabase(fileInput.files[0]);
-                const {error} = await sb.from('videos').insert([{ video_url: url }]);
-                if (error) throw error;
-                fileInput.value = '';
-                await loadData();
-                showToast("تم إضافة الفيديو بنجاح.");
-            } catch(e) {
-                alert("فشل الرفع: " + e.message);
-            }
-            btn.innerText = 'رفع الفيديو';
-        }
-
         async function addVideoLink() {
             var input = document.getElementById('newVideoInput');
             var url = input.value;
             if (url) {
                 try {
-                    const {error} = await sb.from('videos').insert([{ video_url: url }]);
-                    if(error) throw error;
+                    await pb.collection('videos').create({ video_url: url });
                     input.value = '';
                     await loadData();
-                    showToast("تم إضافة رابط الفيديو.");
+                    showToast("تم إضافة الفيديو.");
                 } catch(e) { alert(e.message); }
             }
         }
 
         async function removeVideo(id) {
             if(confirm('هل أنت متأكد من حذف هذا الفيديو؟')) {
-                await sb.from('videos').delete().eq('id', id);
+                await pb.collection('videos').delete(id);
                 await loadData();
             }
         }
