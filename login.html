@@ -3,177 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول | Multi System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>تسجيل الدخول | الإدارة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Cairo', sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .auth-container { background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 450px; overflow: hidden; }
-        .tabs { display: flex; border-bottom: 1px solid #e2e8f0; }
-        .tab { flex: 1; padding: 16px; text-align: center; font-weight: 700; cursor: pointer; color: #64748b; background: #f8fafc; transition: all 0.3s; }
-        .tab.active { color: #059669; background: white; border-bottom: 2px solid #059669; }
+        :root {
+            --primary: #059669;
+            --primary-hover: #047857;
+            --secondary: #0d9488;
+            --dark: #0f172a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --bg: #f8fafc;
+        }
+
+        body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .auth-container { background: white; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); width: 100%; max-width: 480px; overflow: hidden; position: relative; }
+        
         .form-container { padding: 40px; }
-        .form-section { display: none; }
-        .form-section.active { display: block; }
-        .form-section h2 { text-align: center; margin-top: 0; margin-bottom: 24px; color: #1e293b; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #475569; font-size: 14px; }
-        .form-group input { width: 100%; padding: 14px; border: 2px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: border-color 0.3s; }
-        .form-group input:focus { border-color: #059669; outline: none; }
-        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(135deg, #059669, #0d9488); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 16px; transition: transform 0.3s, box-shadow 0.3s; }
-        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(5,150,105,0.3); }
-        .msg { text-align: center; margin-top: 15px; font-size: 14px; display: none; padding: 10px; border-radius: 8px; }
+        .form-section { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .form-section h2 { text-align: center; margin-top: 0; margin-bottom: 8px; color: var(--text-main); font-size: 24px; font-weight: 800; }
+        .form-section p.subtitle { text-align: center; color: var(--text-muted); margin-bottom: 30px; font-size: 14px; }
+        
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main); font-size: 14px; }
+        .form-group input { width: 100%; padding: 14px 45px 14px 14px; border: 2px solid var(--border); border-radius: 12px; box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: all 0.3s; font-size: 15px; color: var(--text-main); }
+        .form-group input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(5,150,105,0.1); }
+        .form-group i { position: absolute; right: 16px; top: 41px; color: var(--text-muted); font-size: 16px; }
+        
+        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 16px; transition: all 0.3s; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(5,150,105,0.3); }
+        
+        .msg { text-align: center; margin-top: 20px; font-size: 14px; display: none; padding: 12px; border-radius: 10px; font-weight: 600; }
         .msg.error { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; display: block; }
         .msg.success { background: #d1fae5; color: #059669; border: 1px solid #6ee7b7; display: block; }
-        .logo-head { text-align: center; margin-bottom: 20px; }
-        .logo-head span { display: inline-block; background: linear-gradient(135deg, #059669, #0d9488); color: white; padding: 10px 20px; border-radius: 12px; font-weight: bold; font-size: 24px; }
+        
+        .logo-head { text-align: center; margin-bottom: 30px; }
+        .logo-head img { max-height: 50px; }
+        .logo-text { background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 30px; font-weight: 800; }
+
+        .loader { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div class="auth-container">
-        <div class="tabs">
-            <div class="tab active" onclick="switchTab('login')">تسجيل الدخول</div>
-            <div class="tab" onclick="switchTab('register')">حساب جديد</div>
-        </div>
-
         <div class="form-container">
-            <div class="logo-head"><span id="authLogo">MS</span></div>
-
-            <!-- Login Form -->
-            <div id="loginSection" class="form-section active">
-                <h2>أهلاً بك مجدداً</h2>
-                <div class="form-group">
-                    <label>الاسم أو البريد الإلكتروني</label>
-                    <input type="text" id="loginUser" placeholder="أدخل اسمك أو بريدك">
-                </div>
-                <div class="form-group">
-                    <label>كلمة المرور</label>
-                    <input type="password" id="loginPass" placeholder="أدخل كلمة المرور">
-                </div>
-                <button class="btn-submit" onclick="doLogin()">تسجيل الدخول</button>
-                <div id="loginMsg" class="msg"></div>
+            <div class="logo-head">
+                <div id="authLogo" class="logo-text">Multi System</div>
             </div>
 
-            <!-- Register Form -->
-            <div id="registerSection" class="form-section">
-                <h2>إنشاء حساب جديد</h2>
+            <!-- Login Form -->
+            <div id="loginSection" class="form-section">
+                <h2>تسجيل الدخول للإدارة</h2>
+                <p class="subtitle">قم بتسجيل الدخول للوصول إلى لوحة التحكم</p>
+
                 <div class="form-group">
-                    <label>الاسم بالكامل</label>
-                    <input type="text" id="regName" placeholder="أدخل اسمك الكامل">
-                </div>
-                <div class="form-group">
-                    <label>البريد الإلكتروني</label>
-                    <input type="email" id="regEmail" placeholder="أدخل بريدك الإلكتروني">
+                    <label>اسم المستخدم</label>
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="loginEmail" placeholder="أدخل اسم المستخدم" dir="rtl" style="text-align: right;">
                 </div>
                 <div class="form-group">
                     <label>كلمة المرور</label>
-                    <input type="password" id="regPass" placeholder="اختر كلمة مرور قوية">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="loginPass" placeholder="••••••••" dir="ltr" style="text-align: right;">
                 </div>
-                <button class="btn-submit" onclick="doRegister()">إنشاء الحساب</button>
-                <div id="regMsg" class="msg"></div>
+
+                <button type="button" class="btn-submit" id="btnLogin" onclick="doLogin()">
+                    <span>تسجيل الدخول</span>
+                    <div class="loader" id="loaderLogin"></div>
+                </button>
+
+                <div class="msg" style="margin-top:20px; font-size:14px; text-align:center;">
+                    <a href="index.html" style="color:var(--primary); text-decoration:none; font-weight:600;">العودة للموقع الرئيسي</a>
+                </div>
+
+                <div id="loginMsg" class="msg"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // Set Logo if exists
-        try {
-            var siteData = JSON.parse(localStorage.getItem('siteData'));
-            if(siteData && siteData.logoUrl) {
-                var logoSpan = document.getElementById('authLogo');
-                logoSpan.style.background = 'none';
-                logoSpan.style.padding = '0';
-                logoSpan.innerHTML = '<img src="'+siteData.logoUrl+'" style="max-height:60px;">';
-            }
-        } catch(e) {}
+        function loadLogo() {
+            try {
+                const brandDataStr = localStorage.getItem('site_brand');
+                if (brandDataStr) {
+                    const brandData = JSON.parse(brandDataStr);
+                    if (brandData.logoUrl) {
+                        document.getElementById('authLogo').innerHTML = `<img src="${brandData.logoUrl}">`;
+                    }
+                }
+            } catch(e) { console.log("No logo found"); }
+        }
+        loadLogo();
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+        function showMessage(type, text) {
+            const el = document.getElementById('loginMsg');
+            el.className = `msg ${type}`;
+            el.innerText = text;
             
-            if(tab === 'login') {
-                document.querySelectorAll('.tab')[0].classList.add('active');
-                document.getElementById('loginSection').classList.add('active');
-            } else {
-                document.querySelectorAll('.tab')[1].classList.add('active');
-                document.getElementById('registerSection').classList.add('active');
+            // إضافة Alert احتياطي لضمان ظهور الرسالة للمستخدم
+            if (type === 'error') {
+                alert(text);
             }
-            document.getElementById('loginMsg').style.display = 'none';
-            document.getElementById('regMsg').style.display = 'none';
         }
 
-        function getUsers() {
-            return JSON.parse(localStorage.getItem('siteUsers')) || [];
-        }
-
-        function saveUsers(users) {
-            localStorage.setItem('siteUsers', JSON.stringify(users));
-        }
-
-        function doRegister() {
-            var name = document.getElementById('regName').value.trim();
-            var email = document.getElementById('regEmail').value.trim();
-            var pass = document.getElementById('regPass').value;
-            var msgEl = document.getElementById('regMsg');
-
-            if(!name || !email || !pass) {
-                msgEl.className = 'msg error';
-                msgEl.innerText = 'يرجى ملء جميع الحقول';
-                return;
+        // إتاحة تسجيل الدخول بالضغط على زر Enter
+        document.getElementById('loginPass').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                doLogin();
             }
-
-            if(name === 'محمد') {
-                msgEl.className = 'msg error';
-                msgEl.innerText = 'هذا الاسم غير متاح للتسجيل';
-                return;
-            }
-
-            var users = getUsers();
-            var exists = users.find(u => u.email === email || u.name === name);
-            if(exists) {
-                msgEl.className = 'msg error';
-                msgEl.innerText = 'الاسم أو البريد الإلكتروني مستخدم بالفعل';
-                return;
-            }
-
-            users.push({ name: name, email: email, pass: pass });
-            saveUsers(users);
-
-            msgEl.className = 'msg success';
-            msgEl.innerText = 'تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.';
-            setTimeout(() => switchTab('login'), 2000);
-        }
+        });
 
         function doLogin() {
-            var userField = document.getElementById('loginUser').value.trim();
-            var passField = document.getElementById('loginPass').value;
-            var msgEl = document.getElementById('loginMsg');
+            try {
+                // إضافة trim() لكلمة المرور أيضاً في حال كان هناك مسافة بالخطأ
+                const username = document.getElementById('loginEmail').value.trim();
+                const pass = document.getElementById('loginPass').value.trim();
 
-            if(!userField || !passField) {
-                msgEl.className = 'msg error';
-                msgEl.innerText = 'يرجى إدخال اسم المستخدم وكلمة المرور';
-                return;
-            }
+                if(!username || !pass) {
+                    return showMessage('error', 'يرجى إدخال اسم المستخدم وكلمة المرور.');
+                }
 
-            // Admin bypass
-            if (userField === 'محمد' && passField === 'محمد') {
-                localStorage.setItem('isAdminLoggedIn', 'true');
-                localStorage.setItem('currentUser', JSON.stringify({ name: 'محمد (مدير النظام)', role: 'admin' }));
-                window.location.href = 'admin.html';
-                return;
-            }
+                document.getElementById('loaderLogin').style.display = 'block';
 
-            // Normal Users
-            var users = getUsers();
-            var user = users.find(u => (u.email === userField || u.name === userField) && u.pass === passField);
-
-            if(user) {
-                localStorage.setItem('isAdminLoggedIn', 'false');
-                localStorage.setItem('currentUser', JSON.stringify({ name: user.name, email: user.email, role: 'user' }));
-                window.location.href = 'index.html';
-            } else {
-                msgEl.className = 'msg error';
-                msgEl.innerText = 'بيانات الدخول غير صحيحة';
+                if (username === 'محمد' && pass === 'محمد') {
+                    try {
+                        localStorage.setItem('isAdminLoggedIn', 'true');
+                        localStorage.setItem('currentUser', JSON.stringify({ name: 'محمد', role: 'admin' }));
+                    } catch(storageErr) {
+                        alert("تحذير: لا يمكن حفظ بيانات الدخول بسبب إعدادات المتصفح.");
+                    }
+                    window.location.href = 'admin.html';
+                } else {
+                    document.getElementById('loaderLogin').style.display = 'none';
+                    showMessage('error', 'اسم المستخدم أو كلمة المرور غير صحيحة. يرجى التأكد من كتابة (محمد) في الحقلين.');
+                }
+            } catch (err) {
+                alert("حدث خطأ غير متوقع: " + err.message);
             }
         }
     </script>

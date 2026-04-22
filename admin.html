@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم الشاملة | Multi System</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.21.1/dist/pocketbase.umd.js"></script>
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -395,6 +394,7 @@
     <script>
         // Check Login
         if (localStorage.getItem('isAdminLoggedIn') !== 'true') {
+            alert('تم تسجيل الخروج أو لم يتم حفظ بيانات الدخول. سيتم تحويلك لصفحة تسجيل الدخول.');
             window.location.href = 'login.html';
         }
         function logout() {
@@ -402,9 +402,6 @@
             window.location.href = 'login.html';
         }
 
-        // PocketBase Setup
-        const pb = new PocketBase('http://127.0.0.1:8090');
-        
         // Data Arrays for dynamic JSON lists
         let siteFeatures = [];
         let sitePricing = [];
@@ -450,71 +447,52 @@
         function openPricingModal() { document.getElementById('mod-price-title').value=''; document.getElementById('mod-price-amount').value=''; document.getElementById('mod-price-features').value=''; document.getElementById('mod-price-popular').checked=false; openModal('modal-pricing'); }
         function openTestimonialModal() { document.getElementById('mod-test-name').value=''; document.getElementById('mod-test-role').value=''; document.getElementById('mod-test-text').value=''; openModal('modal-testimonial'); }
 
-        // --- Core PocketBase Helper ---
+        // --- Core Base64 Helper for Local Storage ---
         async function uploadFileToAssets(file) {
-            try {
-                const formData = new FormData();
-                // Append with different possible field names the user might have used
-                formData.append('file', file);
-                formData.append('FILE', file);
-                formData.append('image', file);
-                formData.append('media', file);
-                formData.append('field', file);
-                
-                const record = await pb.collection('media').create(formData);
-                
-                // Find which field actually saved the file
-                const fileName = record.file || record.FILE || record.image || record.media || record.field;
-                
-                if (!fileName) {
-                    throw new Error("لم يتم حفظ الملف، يرجى التأكد من اسم الحقل في جدول media");
-                }
-                
-                return `http://127.0.0.1:8090/api/files/media/${record.id}/${fileName}`;
-            } catch (e) {
-                console.error(e);
-                alert("فشل رفع الملف! تأكد من أن الحقل في جدول media من نوع (File) واسمه file حروف صغيرة.");
-                return null;
-            }
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
         }
 
         // --- Load Data ---
         window.onload = async function() {
             showLoader("جاري تحميل بيانات الموقع...");
             try {
-                const settings = await pb.collection('site_settings').getFullList();
-                if (settings) {
-                    settings.forEach(s => {
-                        if (s.key === 'contact') {
-                            document.getElementById('inp-phone').value = s.value.phone || '';
-                            document.getElementById('inp-email').value = s.value.email || '';
-                            document.getElementById('inp-address').value = s.value.address || '';
-                            document.getElementById('inp-hours').value = s.value.hours || '';
-                            document.getElementById('inp-ticker').value = s.value.ticker || '';
-                        } else if (s.key === 'brand') {
-                            document.getElementById('inp-logo-url').value = s.value.logoUrl || '';
-                            document.getElementById('inp-logo-text').value = s.value.logoUrl || '';
-                            if (s.value.logoUrl) {
-                                document.getElementById('preview-logo').src = s.value.logoUrl;
-                                document.getElementById('preview-logo').style.display = 'inline-block';
-                            }
-                        } else if (s.key === 'hero') {
-                            document.getElementById('inp-hero-title').value = s.value.title || '';
-                            document.getElementById('inp-hero-accent').value = s.value.accent || '';
-                            document.getElementById('inp-hero-desc').value = s.value.desc || '';
-                            document.getElementById('inp-hero-bg-url').value = s.value.bgUrl || '';
-                            if (s.value.bgUrl) {
-                                document.getElementById('preview-hero-bg').src = s.value.bgUrl;
-                                document.getElementById('preview-hero-bg').style.display = 'inline-block';
-                            }
-                        } else if (s.key === 'features') {
-                            siteFeatures = s.value || [];
-                        } else if (s.key === 'pricing') {
-                            sitePricing = s.value || [];
-                        } else if (s.key === 'testimonials') {
-                            siteTestimonials = s.value || [];
+                const settingsData = localStorage.getItem('siteSettings');
+                if (settingsData) {
+                    const settings = JSON.parse(settingsData);
+                    
+                    if (settings.contact) {
+                        document.getElementById('inp-phone').value = settings.contact.phone || '';
+                        document.getElementById('inp-email').value = settings.contact.email || '';
+                        document.getElementById('inp-address').value = settings.contact.address || '';
+                        document.getElementById('inp-hours').value = settings.contact.hours || '';
+                        document.getElementById('inp-ticker').value = settings.contact.ticker || '';
+                    }
+                    if (settings.brand) {
+                        document.getElementById('inp-logo-url').value = settings.brand.logoUrl || '';
+                        document.getElementById('inp-logo-text').value = settings.brand.logoUrl || '';
+                        if (settings.brand.logoUrl) {
+                            document.getElementById('preview-logo').src = settings.brand.logoUrl;
+                            document.getElementById('preview-logo').style.display = 'inline-block';
                         }
-                    });
+                    }
+                    if (settings.hero) {
+                        document.getElementById('inp-hero-title').value = settings.hero.title || '';
+                        document.getElementById('inp-hero-accent').value = settings.hero.accent || '';
+                        document.getElementById('inp-hero-desc').value = settings.hero.desc || '';
+                        document.getElementById('inp-hero-bg-url').value = settings.hero.bgUrl || '';
+                        if (settings.hero.bgUrl) {
+                            document.getElementById('preview-hero-bg').src = settings.hero.bgUrl;
+                            document.getElementById('preview-hero-bg').style.display = 'inline-block';
+                        }
+                    }
+                    siteFeatures = settings.features || [];
+                    sitePricing = settings.pricing || [];
+                    siteTestimonials = settings.testimonials || [];
                 }
 
                 renderFeatures();
@@ -528,23 +506,21 @@
             } catch (err) {
                 hideLoader();
                 console.error(err);
-                showToast("حدث خطأ أثناء تحميل البيانات. تأكد من إعداد PocketBase.", true);
+                showToast("حدث خطأ أثناء تحميل البيانات.", true);
             }
         };
 
         // --- Save Settings ---
-        async function saveSettingRecord(key, value) {
-            const records = await pb.collection('site_settings').getFullList({ filter: `key="${key}"` });
-            if (records.length > 0) {
-                await pb.collection('site_settings').update(records[0].id, { value });
-            } else {
-                await pb.collection('site_settings').create({ key, value });
-            }
+        function getSiteSettings() {
+            let settings = localStorage.getItem('siteSettings');
+            return settings ? JSON.parse(settings) : {};
         }
 
         async function saveAllSettings() {
             showLoader("جاري حفظ جميع التعديلات...");
             try {
+                let settings = getSiteSettings();
+
                 // Handle Logo File
                 const logoFileInp = document.getElementById('inp-logo-file');
                 let logoUrl = document.getElementById('inp-logo-url').value;
@@ -560,7 +536,7 @@
                 }
 
                 // Gather Data
-                const contactData = {
+                settings.contact = {
                     phone: document.getElementById('inp-phone').value,
                     email: document.getElementById('inp-email').value,
                     address: document.getElementById('inp-address').value,
@@ -568,75 +544,75 @@
                     ticker: document.getElementById('inp-ticker').value
                 };
                 
-                const brandData = { logoUrl: logoUrl };
+                settings.brand = { logoUrl: logoUrl };
+                localStorage.setItem('site_brand', JSON.stringify(settings.brand)); // for login page
                 
-                const heroData = {
+                settings.hero = {
                     title: document.getElementById('inp-hero-title').value,
                     accent: document.getElementById('inp-hero-accent').value,
                     desc: document.getElementById('inp-hero-desc').value,
                     bgUrl: heroBgUrl
                 };
 
-                // Save to PocketBase
-                await saveSettingRecord('contact', contactData);
-                await saveSettingRecord('brand', brandData);
-                await saveSettingRecord('hero', heroData);
-                
-                // Save JSON lists
-                await saveSettingRecord('features', siteFeatures);
-                await saveSettingRecord('pricing', sitePricing);
-                await saveSettingRecord('testimonials', siteTestimonials);
+                settings.features = siteFeatures;
+                settings.pricing = sitePricing;
+                settings.testimonials = siteTestimonials;
+
+                localStorage.setItem('siteSettings', JSON.stringify(settings));
 
                 hideLoader();
                 showToast("تم حفظ التعديلات بنجاح! 🚀");
             } catch (err) {
                 hideLoader();
                 console.error(err);
-                showToast("حدث خطأ أثناء الحفظ!", true);
+                showToast("حدث خطأ أثناء الحفظ! (ربما حجم الصور كبير جداً)", true);
             }
         }
 
         // --- Gallery ---
         async function loadGallery() {
-            const gallery = await pb.collection('gallery').getFullList({ sort: '-created' });
+            let galleryData = localStorage.getItem('siteGallery');
+            let gallery = galleryData ? JSON.parse(galleryData) : [];
             const container = document.getElementById('gallery-container');
             container.innerHTML = '';
-            gallery.forEach(item => {
-                container.innerHTML += `
-                    <div class="item-card">
-                        <button class="btn-delete" onclick="deleteGallery('${item.id}')"><i class="fa-solid fa-trash"></i></button>
-                        <img src="${item.image_url}" class="item-img">
-                    </div>
-                `;
-            });
+            if(gallery) {
+                gallery.forEach((item, idx) => {
+                    container.innerHTML += `
+                        <div class="item-card">
+                            <button class="btn-delete" onclick="deleteGallery(${idx})"><i class="fa-solid fa-trash"></i></button>
+                            <img src="${item.image_url}" class="item-img">
+                        </div>
+                    `;
+                });
+            }
         }
 
         async function addGalleryItem() {
             const fileInp = document.getElementById('inp-gallery-file');
             if (fileInp.files.length === 0) return showToast("يرجى اختيار صورة من جهازك", true);
 
-            showLoader("جاري رفع الصورة إلى السيرفر...");
-            const finalUrl = await uploadFileToAssets(fileInp.files[0]);
-            
-            if (!finalUrl) {
-                hideLoader();
-                return;
-            }
-
+            showLoader("جاري الرفع...");
             try {
-                showLoader("جاري حفظ الصورة...");
-                await pb.collection('gallery').create({ image_url: finalUrl });
+                const finalUrl = await uploadFileToAssets(fileInp.files[0]);
+                let galleryData = localStorage.getItem('siteGallery');
+                let gallery = galleryData ? JSON.parse(galleryData) : [];
+                gallery.push({ id: Date.now(), image_url: finalUrl });
+                localStorage.setItem('siteGallery', JSON.stringify(gallery));
+                
                 fileInp.value = '';
                 await loadGallery();
                 hideLoader();
                 showToast("تمت إضافة الصورة بنجاح");
-            } catch(e) { hideLoader(); showToast("خطأ في الإضافة", true); }
+            } catch(e) { hideLoader(); showToast("خطأ في الإضافة (ربما حجم الصورة كبير جداً)", true); }
         }
 
-        async function deleteGallery(id) {
+        async function deleteGallery(idx) {
             if(confirm("هل أنت متأكد من الحذف؟")) {
                 showLoader("جاري الحذف...");
-                await pb.collection('gallery').delete(id);
+                let galleryData = localStorage.getItem('siteGallery');
+                let gallery = galleryData ? JSON.parse(galleryData) : [];
+                gallery.splice(idx, 1);
+                localStorage.setItem('siteGallery', JSON.stringify(gallery));
                 await loadGallery();
                 hideLoader();
             }
@@ -644,48 +620,51 @@
 
         // --- Videos ---
         async function loadVideos() {
-            const videos = await pb.collection('videos').getFullList({ sort: '-created' });
+            let videosData = localStorage.getItem('siteVideos');
+            let videos = videosData ? JSON.parse(videosData) : [];
             const container = document.getElementById('videos-container');
             container.innerHTML = '';
-            videos.forEach(item => {
-                container.innerHTML += `
-                    <div class="item-card">
-                        <button class="btn-delete" onclick="deleteVideo('${item.id}')"><i class="fa-solid fa-trash"></i></button>
-                        <div class="item-content" style="text-align:center; padding:30px;">
-                            <i class="fa-brands fa-youtube" style="font-size:40px; color:var(--danger); margin-bottom:10px;"></i>
-                            <p style="word-break:break-all;">${item.video_url}</p>
+            if(videos) {
+                videos.forEach((item, idx) => {
+                    container.innerHTML += `
+                        <div class="item-card">
+                            <button class="btn-delete" onclick="deleteVideo(${idx})"><i class="fa-solid fa-trash"></i></button>
+                            <div class="item-content" style="text-align:center; padding:30px;">
+                                <i class="fa-brands fa-youtube" style="font-size:40px; color:var(--danger); margin-bottom:10px;"></i>
+                                <p style="word-break:break-all;">${item.video_url.substring(0, 50)}...</p>
+                            </div>
                         </div>
-                    </div>
-                `;
-            });
+                    `;
+                });
+            }
         }
 
         async function addVideoItem() {
             const fileInp = document.getElementById('inp-video-file');
             if (fileInp.files.length === 0) return showToast("يرجى اختيار فيديو من جهازك", true);
 
-            showLoader("جاري رفع الفيديو... (قد يستغرق بعض الوقت حسب حجم الفيديو)");
-            const finalUrl = await uploadFileToAssets(fileInp.files[0]);
-
-            if (!finalUrl) {
-                hideLoader();
-                return;
-            }
-
+            showLoader("جاري الرفع...");
             try {
-                showLoader("جاري حفظ الفيديو...");
-                await pb.collection('videos').create({ video_url: finalUrl });
+                const finalUrl = await uploadFileToAssets(fileInp.files[0]);
+                let videosData = localStorage.getItem('siteVideos');
+                let videos = videosData ? JSON.parse(videosData) : [];
+                videos.push({ id: Date.now(), video_url: finalUrl });
+                localStorage.setItem('siteVideos', JSON.stringify(videos));
+
                 fileInp.value = '';
                 await loadVideos();
                 hideLoader();
                 showToast("تم رفع وإضافة الفيديو بنجاح!");
-            } catch(e) { hideLoader(); showToast("خطأ في إضافة الفيديو", true); }
+            } catch(e) { hideLoader(); showToast("خطأ في الإضافة (ربما حجم الفيديو كبير جداً)", true); }
         }
 
-        async function deleteVideo(id) {
+        async function deleteVideo(idx) {
             if(confirm("هل أنت متأكد؟")) {
                 showLoader("جاري الحذف...");
-                await pb.collection('videos').delete(id);
+                let videosData = localStorage.getItem('siteVideos');
+                let videos = videosData ? JSON.parse(videosData) : [];
+                videos.splice(idx, 1);
+                localStorage.setItem('siteVideos', JSON.stringify(videos));
                 await loadVideos();
                 hideLoader();
             }

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi System - للحلول البرمجية</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/pocketbase@0.21.1/dist/pocketbase.umd.js"></script>
     <style>
         *{font-family:'Cairo',sans-serif;margin:0;padding:0;box-sizing:border-box}
         html{scroll-behavior:smooth}
@@ -88,6 +87,20 @@
         .badge{display:inline-block;padding:8px 16px;background:#d1fae5;color:var(--primary);border-radius:50px;font-size:14px;font-weight:600;margin-bottom:16px}
         .section-title{font-size:36px;font-weight:700;color:var(--text-dark);margin-bottom:16px}
         .section-desc{font-size:16px;color:var(--text-light);max-width:600px;margin:0 auto}
+
+        .gallery{padding:100px 0;background:var(--darker)}
+        .gallery-container { width: 100%; overflow: hidden; position: relative; padding: 20px 0; margin-top: 40px; }
+        .gallery-container::before, .gallery-container::after { content:''; position:absolute; top:0; bottom:0; width:150px; z-index:2; pointer-events:none; }
+        .gallery-container::before { right:0; background:linear-gradient(to left, var(--darker), transparent); }
+        .gallery-container::after { left:0; background:linear-gradient(to right, var(--darker), transparent); }
+        .gallery-track { display: flex; width: max-content; animation: scrollGallery 35s linear infinite; }
+        .gallery-track:hover { animation-play-state: paused; }
+        .gallery-set { display: flex; gap: 30px; padding-left: 30px; }
+        .gallery-card { flex: 0 0 350px; height: 250px; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .gallery-card:hover { transform: translateY(-10px) scale(1.03); box-shadow: 0 20px 40px rgba(5,150,105,0.4); border-color: var(--primary); }
+        .gallery-img{width:100%;height:100%;object-fit:cover;transition:all .5s}
+        .gallery-card:hover .gallery-img{transform:scale(1.1)}
+        @keyframes scrollGallery { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
         .features{padding:100px 0;background:var(--bg-light)}
         .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
@@ -247,10 +260,14 @@
         </div>
     </section>
 
-    <section id="gallerySection" style="display:none; padding:100px 0; background:#fff;">
-        <div class="container">
-            <div class="section-head"><span class="badge">معرض الصور</span><h2 class="section-title">صور من النظام</h2></div>
-            <div id="siteGallery" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:20px;"></div>
+    <section id="gallery" class="gallery">
+        <div class="container" style="max-width: 100%;">
+            <div class="section-head"><span class="badge">معرض الصور</span><h2 class="section-title">واجهات النظام</h2><p class="section-desc">نظرة سريعة على تصميم واجهات النظام وسهولة الاستخدام</p></div>
+            <div class="gallery-container">
+                <div class="gallery-track" id="siteGallery">
+                    <!-- Gallery dynamically loaded here -->
+                </div>
+            </div>
         </div>
     </section>
 
@@ -295,48 +312,45 @@
         document.querySelectorAll('a[href^="#"]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();var t=document.querySelector(this.getAttribute('href'));if(t){t.scrollIntoView({behavior:'smooth',block:'start'})}})});
         var cForm = document.getElementById('contactForm');
         if(cForm) cForm.addEventListener('submit',function(e){e.preventDefault();alert('شكراً لتواصلك معنا! سنرد عليك في أقرب وقت.');this.reset()});
-        const pb = new PocketBase('http://127.0.0.1:8090'); // غير الرابط هنا بعد ما ترفع PocketBase
-
         window.siteData = {};
         
         async function loadSiteData() {
             try {
-                const settings = await pb.collection('site_settings').getFullList();
-                
-                if (settings && settings.length > 0) {
-                    settings.forEach(s => {
-                        if (s.key === 'contact') {
-                            siteData.phone = s.value.phone;
-                            siteData.email = s.value.email;
-                            siteData.ticker = s.value.ticker;
-                        } else if (s.key === 'brand') {
-                            siteData.logoUrl = s.value.logoUrl;
-                        } else if (s.key === 'hero') {
-                            siteData.heroTitle = s.value.title;
-                            siteData.heroAccent = s.value.accent;
-                            siteData.heroDesc = s.value.desc;
-                            siteData.heroBg = s.value.bgUrl;
-                        } else if (s.key === 'features') {
-                            siteData.features = s.value;
-                        } else if (s.key === 'pricing') {
-                            siteData.pricing = s.value;
-                        } else if (s.key === 'testimonials') {
-                            siteData.testimonials = s.value;
-                        }
-                    });
+                let settingsStr = localStorage.getItem('siteSettings');
+                if (settingsStr) {
+                    let settings = JSON.parse(settingsStr);
+                    if (settings.contact) {
+                        siteData.phone = settings.contact.phone;
+                        siteData.email = settings.contact.email;
+                        siteData.ticker = settings.contact.ticker;
+                    }
+                    if (settings.brand) {
+                        siteData.logoUrl = settings.brand.logoUrl;
+                    }
+                    if (settings.hero) {
+                        siteData.heroTitle = settings.hero.title;
+                        siteData.heroAccent = settings.hero.accent;
+                        siteData.heroDesc = settings.hero.desc;
+                        siteData.heroBg = settings.hero.bgUrl;
+                    }
+                    siteData.features = settings.features || [];
+                    siteData.pricing = settings.pricing || [];
+                    siteData.testimonials = settings.testimonials || [];
                 }
-                const gallery = await pb.collection('gallery').getFullList({ sort: '-created' });
-                siteData.gallery = gallery ? gallery.map(g => g.image_url) : [];
+
+                let galleryStr = localStorage.getItem('siteGallery');
+                siteData.gallery = galleryStr ? JSON.parse(galleryStr) : [];
                 
-                const videos = await pb.collection('videos').getFullList({ sort: '-created' });
-                siteData.videos = videos ? videos.map(v => v.video_url) : [];
+                let videosStr = localStorage.getItem('siteVideos');
+                let videos = videosStr ? JSON.parse(videosStr) : [];
+                siteData.videos = videos.map(v => v.video_url);
 
                 let localData = JSON.parse(localStorage.getItem('siteData')) || {};
                 siteData.floatingImages = localData.floatingImages || [];
 
                 applySiteData(siteData);
             } catch(e) { 
-                console.error('Error fetching from PocketBase', e); 
+                console.error('Error fetching from local storage', e); 
             }
         }
 
@@ -376,7 +390,6 @@
                         heroSection.style.backgroundPosition = "center";
                         heroSection.style.position = "relative";
                         heroSection.style.zIndex = "1";
-                        // Add overlay to keep text readable
                         var overlay = document.createElement('div');
                         overlay.style.position = 'absolute';
                         overlay.style.top = '0'; overlay.style.left = '0'; overlay.style.width = '100%'; overlay.style.height = '100%';
@@ -386,29 +399,24 @@
                     }
                 }
                 if (siteData.gallery && siteData.gallery.length > 0) {
-                    document.getElementById('gallerySection').style.display = 'block';
-                    var galleryContainer = document.getElementById('siteGallery');
-                    siteData.gallery.forEach(function(url) {
-                        var img = document.createElement('img');
-                        img.src = url;
-                        img.style.width = '100%';
-                        img.style.height = '250px';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '12px';
-                        galleryContainer.appendChild(img);
-                    });
+                    var galGrid = document.getElementById('siteGallery');
+                    if (galGrid) {
+                        var galHTML = '';
+                        siteData.gallery.forEach(img => {
+                            galHTML += '<div class="gallery-card"><img src="'+img.image_url+'" alt="System Screenshot" class="gallery-img"></div>';
+                        });
+                        galGrid.innerHTML = '<div class="gallery-set">' + galHTML + '</div><div class="gallery-set">' + galHTML + '</div>';
+                    }
                 }
                 
                 if (siteData.videos && siteData.videos.length > 0) {
                     var videosContainer = document.getElementById('siteVideos');
-                    var noVidMsg = document.getElementById('noVideosMsg');
-                    if (noVidMsg) noVidMsg.style.display = 'none';
+                    videosContainer.innerHTML = '';
                     siteData.videos.forEach(function(url) {
                         var isDirectVideo = url.match(/\.(mp4|webm|ogg)$/i);
-                        
                         var wrapper = document.createElement('div');
                         wrapper.style.position = 'relative';
-                        wrapper.style.paddingBottom = '56.25%'; /* 16:9 */
+                        wrapper.style.paddingBottom = '56.25%'; 
                         wrapper.style.height = '0';
                         wrapper.style.overflow = 'hidden';
                         wrapper.style.borderRadius = '16px';
@@ -418,7 +426,6 @@
                             var videoEl = document.createElement('video');
                             videoEl.src = url;
                             videoEl.controls = true;
-                            videoEl.autoplay = false;
                             videoEl.style.position = 'absolute';
                             videoEl.style.top = '0';
                             videoEl.style.left = '0';
@@ -439,7 +446,6 @@
                             } else {
                                 embedUrl += '?autoplay=0';
                             }
-                            
                             var iframe = document.createElement('iframe');
                             iframe.src = embedUrl;
                             iframe.style.position = 'absolute';
@@ -644,22 +650,27 @@
 
         // Handle Auth State in Header
         try {
-            var currentUserStr = localStorage.getItem('currentUser');
-            var authBtn = document.getElementById('mainAuthBtn');
-            var greeting = document.getElementById('userGreeting');
-            if(currentUserStr && authBtn) {
-                var cUser = JSON.parse(currentUserStr);
-                authBtn.innerText = 'تسجيل الخروج';
-                authBtn.style.background = '#ef4444';
-                authBtn.style.boxShadow = '0 4px 15px rgba(239,68,68,0.3)';
-                authBtn.onclick = function() {
-                    localStorage.removeItem('currentUser');
-                    localStorage.setItem('isAdminLoggedIn', 'false');
-                    window.location.reload();
-                };
+            if (localStorage.getItem('isAdminLoggedIn') === 'true') {
+                var authBtn = document.getElementById('mainAuthBtn');
+                var greeting = document.getElementById('userGreeting');
+                if(authBtn) {
+                    authBtn.innerText = 'تسجيل الخروج';
+                    authBtn.style.background = '#ef4444';
+                    authBtn.style.boxShadow = '0 4px 15px rgba(239,68,68,0.3)';
+                    authBtn.onclick = function() {
+                        localStorage.removeItem('currentUser');
+                        localStorage.setItem('isAdminLoggedIn', 'false');
+                        window.location.reload();
+                    };
+                }
                 if (greeting) {
-                    greeting.innerText = 'مرحباً، ' + cUser.name;
+                    greeting.innerText = 'مرحباً بك يا مدير النظام';
                     greeting.style.display = 'inline-block';
+                }
+            } else {
+                var authBtn = document.getElementById('mainAuthBtn');
+                if(authBtn) {
+                    authBtn.innerText = 'الإدارة';
                 }
             }
         } catch(e) {}
